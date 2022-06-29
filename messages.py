@@ -2,25 +2,29 @@
 # Questo file contiene le funzioni
 # utili al server e al client
 
-import socket, sys, os
+import socket, sys, os, select
 
-def getFromServer():
-    return
-
-def putOnServer(filename, socket):
-    file = open(filename, 'rb')
-    file_data = file.read(1024)
-    socket.send(file_data)
-    print("\n\r File sent successufully!")
-    return
-
-def getOnServer(filename, socket):
+def receiveFile(filename, socket, buffer):
     file = open(filename, 'wb')
-    file_data = socket.recv(1024)
-    file.write(file_data)
-    file.close()
-    print("\n\r File received successefully!")
+    while True:
+        ready = select.select([socket], [], [])
+        if ready[0]:
+            data, address = socket.recvfrom()
+            file.write()
+        else:
+            print("%s finish" % filename)
+            file.close()
+            break
+    return
+
+def sendFile(filename, socket, address, read_buffer):
+    file = open(filename, 'r')
+    data = file.read(read_buffer)
+    while(data):
+        if(socket.sendto(data, address)):
+            data = file.read(read_buffer)  
     return
 
 def listFromServer():
-    return str(os.listdir(os.getcwd())).encode()
+    print(os.listdir(os.getcwd()))
+    return str(os.listdir(os.getcwd())).encode('utf8')
