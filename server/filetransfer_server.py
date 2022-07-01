@@ -2,12 +2,12 @@ import socket
 import sys
 import messages as mes
 
-BUFFSIZE = int(4096)
-PORT = int(10000)
+BUFFSIZE = 4096
+PORT = 10000
 
 s_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ('', PORT)
-print(f'Waiting up on {server_address[0]}, port {server_address[1]}', end="\n\r")
+server_address = ('127.0.0.0', PORT)
+print(f'Waiting up on {server_address[0]}, port {server_address[1]}', end = "\n\r")
 s_sock.bind(server_address)
 
 try: 
@@ -25,13 +25,12 @@ try:
             filename = line[1]
             mes.receiveFile(filename, s_sock, BUFFSIZE)
             ok = "File received correctly"
-            s_sock.sendto(ok.encode('utf8'), server_address)
+            s_sock.sendto(ok.encode('utf8'), client)
 
         if line[0] == 'get':
             filename = line[1]
-            s_sock.sendto(filename, server_address)
             print(f'Sending {filename}...')
-            mes.sendFile(filename, s_sock, server_address, BUFFSIZE)
+            mes.sendFile(filename, s_sock, client, BUFFSIZE)
 
         if line[0] == 'exit':
             sys.exit(0)
