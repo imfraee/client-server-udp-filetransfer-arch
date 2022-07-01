@@ -1,40 +1,42 @@
-import socket, time, sys
-sys.path.append('/home/francesca/progetto_reti')
+import socket
+import sys
 import messages as mes
 
 BUFFSIZE = int(4096)
 PORT = int(10000)
 
 s_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ('localhost', PORT)
-print('\n\r Waiting up on %s, port %s' % server_address)
+server_address = ('', PORT)
+print(f'Waiting up on {server_address[0]}, port {server_address[1]}', end="\n\r")
 s_sock.bind(server_address)
 
-while True:
-    print('\n\r Waiting to receive a message... ')
-    data, client = s_sock.recvfrom(BUFFSIZE)
-    #print('\n\r Received %s bytes from port %s' % (len(data), address))
-    line = data.decode('utf8').split()
-    print(data)
-    
-    if line[0] == 'list':
-        s_sock.sendto(mes.listFromServer(), client)
-        print("\n\r List sent")
+try: 
+    while True:
+        print('Waiting to receive a message...', end="\n\r")
+        data, client = s_sock.recvfrom(BUFFSIZE)
+        line = data.decode('utf8').split(' ', maxsplit=1)
+        print(data)
+        
+        if line[0] == 'list':
+            s_sock.sendto(mes.listFromServer(), client)
+            print('List sent', end="\n\r")
 
-    if line[0] == 'put':
-        filename = line[1]
-        while True:
+        if line[0] == 'put':
+            filename = line[1]
             mes.receiveFile(filename, s_sock, BUFFSIZE)
-            break
-        ok = "\n\rFile received correctly"
-        s_sock.sendto(ok.encode('utf8'), server_address)
+            ok = "File received correctly"
+            s_sock.sendto(ok.encode('utf8'), server_address)
 
-    if line[0] == 'get':
-        filename = line[1]
-        s_sock.sendto(filename, server_address)
-        print("\n\r Sending %s..." % filename)
-        mes.sendFile(filename, s_sock, server_address, BUFFSIZE)
+        if line[0] == 'get':
+            filename = line[1]
+            s_sock.sendto(filename, server_address)
+            print(f'Sending {filename}...')
+            mes.sendFile(filename, s_sock, server_address, BUFFSIZE)
 
-    if line[0] == 'exit':
-        exit()
-
+        if line[0] == 'exit':
+            sys.exit(0)
+except Exception as e:
+    print(e)
+finally:
+    print('Closing socket', end="\n\r")
+    s_sock.close()
